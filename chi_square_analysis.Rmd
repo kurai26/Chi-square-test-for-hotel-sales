@@ -1,0 +1,89 @@
+---
+title: "chi_square_analysis"
+author: "Kurai Nhliziyo"
+date: "2025-03-22"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Introduction
+
+Typically I do a lot of classification analyses. In this project I will do some simple statistical analyses using the hotel sales data. My research question is what factors levels of hotel guest satisfaction. I will focus on the customer review: Excellent, Very Good, Good and Poor. Many of the columns in this particular dataset are categorical. Therefore I will do the chi-square test and test if there is any relationship between two categorical variables.
+
+```{r}
+# load libraries
+library(tidyverse) # metapackage of all tidyverse packages
+library(readxl)  # package to read in excel files
+```
+
+## Data Preprocessing
+
+
+
+```{r, echo=FALSE}
+# load the data
+file_path <- 'data/transactions.xlsx'
+
+# read the Excel file, sheet 1
+data <- read_excel(file_path, sheet = 1)
+
+# show top 6 rows
+head(data)
+```
+```{r}
+# see details
+glimpse(data)
+```
+
+```{r}
+# removing unnecessary columns
+data <- data %>% select(-c('cus_name','phone_no','emel','card_no'))
+
+# changing column names
+data <- data %>%
+  rename(room_type = `room-type`,
+        child = `(child)`,
+        sales_person = `Sales Person`)
+```
+
+```{r}
+# check for nulls
+sum(is.na(data))
+```
+```{r}
+# check what unique values are in categorical columns
+# identify categorical variables (both character and factor)
+categorical_vars <- sapply(data, function(col) is.factor(col) | is.character(col))
+
+# show unique values for each categorical variable
+lapply(data[, categorical_vars, drop = FALSE], unique)
+```
+
+## Research questions
+1. Does the room type influence the level of guest satisfaction?
+2. Is there a relationship between membership status and level of satisfaction?
+
+## Chi-square test to compare categorical vs categorical variables
+
+```{r}
+room_type_table <- table(data$customer_review, data$room_type)
+print(room_type_table)
+```
+
+```{r}
+chisq.test(room_type_table)
+```
+The first chi-square test resulted in a p-value smaller than 0.05. There is a significant relationship between the room type and level of satisfaction.
+
+```{r}
+membership_table <- table(data$customer_review, data$membership)
+print(membership_table)
+```
+```{r}
+chisq.test(membership_table)
+```
+
+The second test also yielded a small p-value. There is a significant relationship between membership and satisfaction.
